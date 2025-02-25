@@ -35,37 +35,39 @@ void DoxygenFilesDialog::createLeaf(ProjectExplorer::Node* parentNode, QTreeWidg
 
         parentItem->setIcon(0, currentFolderNode->icon());
 
-        foreach (ProjectExplorer::FileNode* fileNode, currentFolderNode->fileNodes()) {
-            QString fileName = fileNode->filePath().toString();
+        currentFolderNode->forEachFileNode([&parentItem](ProjectExplorer::FileNode* fileNode) {
+            QString fileName = fileNode->filePath().path();
 
-            if ((QRegExp("\\.(h|hpp|c|cpp)$").indexIn(fileName)) != -1) {
+            auto match = QRegularExpression("\\.(h|hpp|c|cpp)$").match(fileName);
+            if (match.hasMatch()) {
                 QTreeWidgetItem* child = new QTreeWidgetItem(parentItem, QStringList(fileName));
                 child->setCheckState(0, Qt::Checked);
                 parentItem->addChild(child);
             }
-        }
+        });
 
-        foreach (ProjectExplorer::FolderNode* folderNode, currentFolderNode->folderNodes()) {
+        currentFolderNode->forEachFolderNode([this, &parentItem](ProjectExplorer::FolderNode *folderNode) {
             createLeaf(folderNode, new QTreeWidgetItem(parentItem, QStringList(folderNode->displayName())));
-        }
+        });
     } else if (parentNode->asProjectNode()) {
         ProjectExplorer::ProjectNode* currentProjectNode = parentNode->asProjectNode();
 
         parentItem->setIcon(0, currentProjectNode->icon());
 
-        foreach (ProjectExplorer::FileNode* fileNode, currentProjectNode->fileNodes()) {
-            QString fileName = fileNode->filePath().toString();
+        currentProjectNode->forEachFileNode([&parentItem](ProjectExplorer::FileNode* fileNode) {
+            QString fileName = fileNode->filePath().path();
 
-            if ((QRegExp("\\.(h|hpp|c|cpp)$").indexIn(fileName)) != -1) {
+            auto match = QRegularExpression("\\.(h|hpp|c|cpp)$").match(fileName);
+            if (match.hasMatch()) {
                 QTreeWidgetItem* child = new QTreeWidgetItem(parentItem, QStringList(fileName));
                 child->setCheckState(0, Qt::Checked);
                 parentItem->addChild(child);
             }
-        }
+        });
 
-        foreach (ProjectExplorer::FolderNode* folderNode, currentProjectNode->folderNodes()) {
+        currentProjectNode->forEachFolderNode([this, &parentItem](ProjectExplorer::FolderNode *folderNode) {
             createLeaf(folderNode, new QTreeWidgetItem(parentItem, QStringList(folderNode->displayName())));
-        }
+        });
 
         createLeaf(currentProjectNode, new QTreeWidgetItem(parentItem, QStringList(currentProjectNode->displayName())));
     }

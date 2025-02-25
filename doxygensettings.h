@@ -27,16 +27,11 @@
 #include "doxygensettingswidget.h"
 #include <QPointer>
 
-QT_BEGIN_NAMESPACE
-class QSettings;
-QT_END_NAMESPACE
-
 namespace DoxyPlugin {
 namespace Internal {
 
 class DoxygenSettings : public Core::IOptionsPage
 {
-    Q_OBJECT
 public:
     DoxygenSettings();
 

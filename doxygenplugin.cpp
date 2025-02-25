@@ -31,18 +31,15 @@
 #include <coreplugin/icontext.h>
 #include <coreplugin/icore.h>
 #include <coreplugin/messagemanager.h>
+#include <coreplugin/session.h>
 #include <cppeditor/cppeditorconstants.h>
-#include <cpptools/cpptoolsconstants.h>
 #include <projectexplorer/project.h>
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/projectexplorerconstants.h>
 #include <projectexplorer/projecttree.h>
-#include <projectexplorer/session.h>
 
 #include <extensionsystem/pluginmanager.h>
-#include <utils/parameteraction.h>
 #include <utils/qtcassert.h>
-#include <utils/synchronousprocess.h>
 
 #include <QAction>
 #include <QFileInfo>
@@ -84,7 +81,7 @@ DoxygenPlugin::~DoxygenPlugin()
     // Unregister objects from the plugin manager's object pool
     // Delete members
     m_instance = nullptr;
-    m_settings->deleteLater();
+    delete m_settings;
 }
 
 bool DoxygenPlugin::initialize(const QStringList& arguments, QString* errorString)
@@ -284,7 +281,7 @@ void DoxygenPlugin::doxyfileWizard() // TODO: refactor
         return;
     }
 
-    QString projectRoot = p->projectDirectory().toString();
+    QString projectRoot = p->projectDirectory().path();
     QString executable = settings().doxywizardCommand;
     QStringList arglist(settings().doxyfileFileName);
 
@@ -321,8 +318,7 @@ void DoxygenPlugin::runDoxygen(const QStringList& arguments, QString workingDire
 
 void DoxygenPlugin::externalString(const QString& text)
 {
-    Core::MessageManager::write(text);
-    Core::MessageManager::showOutputPane();
+    Core::MessageManager::writeFlashing(text);
 }
 
 void DoxygenPlugin::processExited(int returnCode, QProcess::ExitStatus exitStatus)

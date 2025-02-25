@@ -56,9 +56,9 @@ void DoxygenSettingsWidget::changeEvent(QEvent* e)
 DoxygenSettingsStruct DoxygenSettingsWidget::settings() const
 {
     DoxygenSettingsStruct rc;
-    rc.doxygenCommand = ui->pathChooser_doxygen->path();
+    rc.doxygenCommand = ui->pathChooser_doxygen->filePath().path();
     rc.doxyfileFileName = ui->edit_doxyfileName->text();
-    rc.doxywizardCommand = ui->pathChooser_wizard->path();
+    rc.doxywizardCommand = ui->pathChooser_wizard->filePath().path();
     rc.style = DoxygenStyle(ui->styleChooser->currentIndex());
     rc.fcomment = Files2Comment(ui->fcommentChooser->currentIndex());
     rc.printBrief = ui->printBriefTag->isChecked();

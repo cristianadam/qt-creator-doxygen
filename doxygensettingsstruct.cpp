@@ -20,6 +20,9 @@
 **/
 
 #include "doxygensettingsstruct.h"
+
+#include <utils/qtcsettings.h>
+
 #include <QStringList>
 #include <QTextStream>
 using namespace DoxyPlugin;
@@ -84,29 +87,29 @@ DoxygenSettingsStruct::DoxygenSettingsStruct()
     qRegisterMetaType<DoxygenSettingsStruct>("DoxygenSettingsStruct");
 }
 
-void DoxygenSettingsStruct::fromSettings(QSettings* settings)
+void DoxygenSettingsStruct::fromSettings(Utils::QtcSettings* settings)
 {
-    settings->beginGroup(QLatin1String(groupC));
-    doxygenCommand = settings->value(QLatin1String(commandKeyC), defaultCommand()).toString();
-    doxyfileFileName = settings->value(QLatin1String(doxyfilePathKeyC), defaultDoxyFile()).toString();
-    doxywizardCommand = settings->value(QLatin1String(wizardcommandKeyC), defaultWizardCommand()).toString();
-    style = DoxygenStyle(settings->value(QLatin1String(styleKeyC), 0).toInt());
-    fcomment = Files2Comment(settings->value(QLatin1String(fcommentKeyC), 0).toInt());
-    printBrief = settings->value(QLatin1String(printBriefKeyC), 1).toBool();
-    shortVarDoc = settings->value(QLatin1String(printShortVarDocKeyC), 1).toBool();
-    verbosePrinting = settings->value(QLatin1String(verbosePrintingKeyC), 0).toBool();
-    automaticReturnType = settings->value(QLatin1String(automaticAddReturnType), true).toBool();
-    customBegin = settings->value(QLatin1String(customBeginKeyC), "").toString();
-    customBrief = settings->value(QLatin1String(customBriefKeyC), "").toString();
-    customEmptyLine = settings->value(QLatin1String(customEmptyLineKeyC), "").toString();
-    customNewLine = settings->value(QLatin1String(customNewLineKeyC), "").toString();
-    customEnding = settings->value(QLatin1String(customEndingKeyC), "").toString();
-    customShortDoc = settings->value(QLatin1String(customShortDocKeyC), "").toString();
-    customShortDocEnd = settings->value(QLatin1String(customShortDocEndKeyC), "").toString();
-    fileCommentsEnabled = settings->value(QLatin1String(fileCommentEnabledKeyC), false).toBool();
-    fileCommentHeaders = settings->value(QLatin1String(fileCommentHeadersKeyC), false).toBool();
-    fileCommentImpl = settings->value(QLatin1String(fileCommentImplKeyC), false).toBool();
-    fileComment = settings->value(QLatin1String(fileCommentKeyC), "").toString();
+    settings->beginGroup(Utils::keyFromString(QLatin1String(groupC)));
+    doxygenCommand = settings->value(Utils::keyFromString(QLatin1String(commandKeyC)), defaultCommand()).toString();
+    doxyfileFileName = settings->value(Utils::keyFromString(QLatin1String(doxyfilePathKeyC)), defaultDoxyFile()).toString();
+    doxywizardCommand = settings->value(Utils::keyFromString(QLatin1String(wizardcommandKeyC)), defaultWizardCommand()).toString();
+    style = DoxygenStyle(settings->value(Utils::keyFromString(QLatin1String(styleKeyC)), 0).toInt());
+    fcomment = Files2Comment(settings->value(Utils::keyFromString(QLatin1String(fcommentKeyC)), 0).toInt());
+    printBrief = settings->value(Utils::keyFromString(QLatin1String(printBriefKeyC)), 1).toBool();
+    shortVarDoc = settings->value(Utils::keyFromString(QLatin1String(printShortVarDocKeyC)), 1).toBool();
+    verbosePrinting = settings->value(Utils::keyFromString(QLatin1String(verbosePrintingKeyC)), 0).toBool();
+    automaticReturnType = settings->value(Utils::keyFromString(QLatin1String(automaticAddReturnType)), true).toBool();
+    customBegin = settings->value(Utils::keyFromString(QLatin1String(customBeginKeyC)), "").toString();
+    customBrief = settings->value(Utils::keyFromString(QLatin1String(customBriefKeyC)), "").toString();
+    customEmptyLine = settings->value(Utils::keyFromString(QLatin1String(customEmptyLineKeyC)), "").toString();
+    customNewLine = settings->value(Utils::keyFromString(QLatin1String(customNewLineKeyC)), "").toString();
+    customEnding = settings->value(Utils::keyFromString(QLatin1String(customEndingKeyC)), "").toString();
+    customShortDoc = settings->value(Utils::keyFromString(QLatin1String(customShortDocKeyC)), "").toString();
+    customShortDocEnd = settings->value(Utils::keyFromString(QLatin1String(customShortDocEndKeyC)), "").toString();
+    fileCommentsEnabled = settings->value(Utils::keyFromString(QLatin1String(fileCommentEnabledKeyC)), false).toBool();
+    fileCommentHeaders = settings->value(Utils::keyFromString(QLatin1String(fileCommentHeadersKeyC)), false).toBool();
+    fileCommentImpl = settings->value(Utils::keyFromString(QLatin1String(fileCommentImplKeyC)), false).toBool();
+    fileComment = settings->value(Utils::keyFromString(QLatin1String(fileCommentKeyC)), "").toString();
 
     settings->endGroup();
 
@@ -114,29 +117,29 @@ void DoxygenSettingsStruct::fromSettings(QSettings* settings)
     setDoxygenCommentStyle(style);
 }
 
-void DoxygenSettingsStruct::toSettings(QSettings* settings)
+void DoxygenSettingsStruct::toSettings(Utils::QtcSettings* settings)
 {
-    settings->beginGroup(QLatin1String(groupC));
-    settings->setValue(QLatin1String(commandKeyC), doxygenCommand);
-    settings->setValue(QLatin1String(doxyfilePathKeyC), doxyfileFileName);
-    settings->setValue(QLatin1String(wizardcommandKeyC), doxywizardCommand);
-    settings->setValue(QLatin1String(styleKeyC), style);
-    settings->setValue(QLatin1String(fcommentKeyC), fcomment);
-    settings->setValue(QLatin1String(printBriefKeyC), printBrief);
-    settings->setValue(QLatin1String(printShortVarDocKeyC), shortVarDoc);
-    settings->setValue(QLatin1String(verbosePrintingKeyC), verbosePrinting);
-    settings->setValue(QLatin1String(automaticAddReturnType), automaticReturnType);
-    settings->setValue(QLatin1String(customBeginKeyC), customBegin);
-    settings->setValue(QLatin1String(customBriefKeyC), customBrief);
-    settings->setValue(QLatin1String(customEmptyLineKeyC), customEmptyLine);
-    settings->setValue(QLatin1String(customNewLineKeyC), customNewLine);
-    settings->setValue(QLatin1String(customEndingKeyC), customEnding);
-    settings->setValue(QLatin1String(customShortDocKeyC), customShortDoc);
-    settings->setValue(QLatin1String(customShortDocEndKeyC), customShortDocEnd);
-    settings->setValue(QLatin1String(fileCommentEnabledKeyC), fileCommentsEnabled);
-    settings->setValue(QLatin1String(fileCommentHeadersKeyC), fileCommentHeaders);
-    settings->setValue(QLatin1String(fileCommentImplKeyC), fileCommentImpl);
-    settings->setValue(QLatin1String(fileCommentKeyC), fileComment);
+    settings->beginGroup(Utils::keyFromString(QLatin1String(groupC)));
+    settings->setValue(Utils::keyFromString(QLatin1String(commandKeyC)), doxygenCommand);
+    settings->setValue(Utils::keyFromString(QLatin1String(doxyfilePathKeyC)), doxyfileFileName);
+    settings->setValue(Utils::keyFromString(QLatin1String(wizardcommandKeyC)), doxywizardCommand);
+    settings->setValue(Utils::keyFromString(QLatin1String(styleKeyC)), style);
+    settings->setValue(Utils::keyFromString(QLatin1String(fcommentKeyC)), fcomment);
+    settings->setValue(Utils::keyFromString(QLatin1String(printBriefKeyC)), printBrief);
+    settings->setValue(Utils::keyFromString(QLatin1String(printShortVarDocKeyC)), shortVarDoc);
+    settings->setValue(Utils::keyFromString(QLatin1String(verbosePrintingKeyC)), verbosePrinting);
+    settings->setValue(Utils::keyFromString(QLatin1String(automaticAddReturnType)), automaticReturnType);
+    settings->setValue(Utils::keyFromString(QLatin1String(customBeginKeyC)), customBegin);
+    settings->setValue(Utils::keyFromString(QLatin1String(customBriefKeyC)), customBrief);
+    settings->setValue(Utils::keyFromString(QLatin1String(customEmptyLineKeyC)), customEmptyLine);
+    settings->setValue(Utils::keyFromString(QLatin1String(customNewLineKeyC)), customNewLine);
+    settings->setValue(Utils::keyFromString(QLatin1String(customEndingKeyC)), customEnding);
+    settings->setValue(Utils::keyFromString(QLatin1String(customShortDocKeyC)), customShortDoc);
+    settings->setValue(Utils::keyFromString(QLatin1String(customShortDocEndKeyC)), customShortDocEnd);
+    settings->setValue(Utils::keyFromString(QLatin1String(fileCommentEnabledKeyC)), fileCommentsEnabled);
+    settings->setValue(Utils::keyFromString(QLatin1String(fileCommentHeadersKeyC)), fileCommentHeaders);
+    settings->setValue(Utils::keyFromString(QLatin1String(fileCommentImplKeyC)), fileCommentImpl);
+    settings->setValue(Utils::keyFromString(QLatin1String(fileCommentKeyC)), fileComment);
     settings->endGroup();
 
     // Support java, qt and custom styles

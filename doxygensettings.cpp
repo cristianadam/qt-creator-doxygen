@@ -20,14 +20,14 @@
 **/
 
 #include "doxygensettings.h"
-#include "doxygen.h"
 #include "doxygenconstants.h"
-#include "doxygenplugin.h"
+#include "doxygentr.h"
 #include <QIcon>
 #include <QtCore/QCoreApplication>
 #include <coreplugin/icore.h>
 #include <utils/icon.h>
 #include <utils/qtcassert.h>
+#include <utils/stylehelper.h>
 
 namespace DoxyPlugin {
 namespace Internal {
@@ -35,13 +35,14 @@ namespace Internal {
     DoxygenSettings::DoxygenSettings()
         : m_widget()
     {
-        if (QSettings* settings = Core::ICore::instance()->settings())
+        if (auto settings = Core::ICore::instance()->settings())
             m_settings.fromSettings(settings);
-        setId("A.General");
-        setDisplayName(tr("Doxygen"));
-        setCategory(Utils::Id::fromString(QString(Constants::DOXYGEN_SETTINGS_CATEGORY)));
-        setDisplayCategory("Doxygen");
-        setCategoryIcon(Utils::Icon(":/doxygen.png"));
+        setId(Constants::DOXYGEN_SETTINGS_ID);
+        setDisplayName(Tr::tr("Doxygen"));
+        setDisplayCategory(Tr::tr("Doxygen"));
+        setCategory(Constants::DOXYGEN_SETTINGS_CATEGORY);
+        auto icon = Utils::FilePath::fromString(Utils::StyleHelper::dpiSpecificImageFile(":/doxygen.png"));
+        setCategoryIconPath(icon);
     }
 
     QWidget* DoxygenSettings::widget()
@@ -73,7 +74,7 @@ namespace Internal {
     {
         if (s != m_settings) {
             m_settings = s;
-            if (QSettings* settings = Core::ICore::instance()->settings())
+            if (auto settings = Core::ICore::instance()->settings())
                 m_settings.toSettings(settings);
         }
     }

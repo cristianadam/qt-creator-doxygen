@@ -22,7 +22,8 @@
 #ifndef DOXYGENSETTINGSSTRUCT_H
 #define DOXYGENSETTINGSSTRUCT_H
 
-#include <QSettings>
+#include <utils/qtcsettings.h>
+#include <QString>
 
 namespace DoxyPlugin {
 namespace Internal {
@@ -44,8 +45,8 @@ enum Files2Comment {
 struct DoxygenSettingsStruct
 {
     DoxygenSettingsStruct();
-    void fromSettings(QSettings *);
-    void toSettings(QSettings *);
+    void fromSettings(Utils::QtcSettings *);
+    void toSettings(Utils::QtcSettings *);
     // add options to command line
     QStringList addOptions(const QStringList &args) const;
     // Format arguments for log windows hiding passwords, etc.

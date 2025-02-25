@@ -26,8 +26,8 @@ namespace Constants {
 
 const char CREATE_DOCUMENTATION_DOXYGEN[] = "Doxygen.createDocumentation";
 const char DOCUMENT_FILE_DOXYGEN[]        = "Doxygen.documentFile";
+const char DOXYGEN_SETTINGS_ID[]          = "Doxygen.General";
 const char DOXYGEN_SETTINGS_CATEGORY[]    = "X.Doxygen";
-const char DOXYGEN_SETTINGS_TR_CATEGORY[] = QT_TRANSLATE_NOOP("Doxygen", "Doxygen Plugin");
 
 
 } // namespace Doxygen

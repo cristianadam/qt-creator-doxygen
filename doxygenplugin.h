@@ -46,7 +46,7 @@ struct DoxygenResponse
 class DoxygenPlugin : public ExtensionSystem::IPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "Doxygen.json")
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE "DoxygenPlugin.json")
 
 public:
     DoxygenPlugin();

@@ -27,20 +27,20 @@
 #include <coreplugin/editormanager/editorview.h>
 #include <coreplugin/editormanager/ieditor.h>
 #include <coreplugin/icore.h>
+#include <coreplugin/session.h>
 #include <cplusplus/CppDocument.h>
 #include <cplusplus/Names.h>
 #include <cplusplus/Overview.h>
 #include <cplusplus/Scope.h>
 #include <cplusplus/Symbols.h>
 #include <cppeditor/cppeditorconstants.h>
-#include <cpptools/cppmodelmanager.h>
-#include <cpptools/cpptoolsconstants.h>
+#include <cppeditor/cppmodelmanager.h>
 #include <extensionsystem/pluginmanager.h>
 #include <projectexplorer/project.h>
 #include <projectexplorer/projectexplorer.h>
 #include <projectexplorer/projectexplorerconstants.h>
+#include <projectexplorer/projectmanager.h>
 #include <projectexplorer/projecttree.h>
-#include <projectexplorer/session.h>
 #include <texteditor/texteditor.h>
 
 #include <QFile>
@@ -103,7 +103,7 @@ QStringList scopesForSymbol(const Symbol* symbol)
     const Scope* scope = symbol->asScope();
     QStringList scopes;
 
-    if (symbol->isFunction()) {
+    if (symbol->asFunction()) {
         const Name* name = symbol->name();
         Overview overview;
         overview.showArgumentNames = false;
@@ -115,7 +115,7 @@ QStringList scopesForSymbol(const Symbol* symbol)
     for (; scope; scope = scope->enclosingScope()) {
         Symbol* owner = scope->memberAt(0);
 
-        if (owner && owner->name() && !scope->isEnum()) {
+        if (owner && owner->name() && !scope->asEnum()) {
             const Name* name = owner->name();
             Overview overview;
             overview.showArgumentNames = false;
@@ -128,7 +128,7 @@ QStringList scopesForSymbol(const Symbol* symbol)
 
 Symbol* currentSymbol(Core::IEditor* editor)
 {
-    CppTools::CppModelManager* modelManager = CppTools::CppModelManager::instance();
+    CppEditor::CppModelManager* modelManager = CppEditor::CppModelManager::instance();
     if (!modelManager) {
         return nullptr;
     }
@@ -179,9 +179,9 @@ bool Doxygen::documentEntity(const DoxygenSettingsStruct& DoxySettings, Core::IE
 
     // We don't want to document multiple times.
     // TODO: Find a better, faster way.
-    QRegExp commentClosing("\\*/");
+    QRegularExpression commentClosing("\\*/");
     QString text(editorWidget->document()->toPlainText());
-    QStringList lines(text.split(QRegExp("\n|\r\n|\r")));
+    QStringList lines(text.split(QRegularExpression("\n|\r\n|\r")));
 
     // We check the 4 previous lines for comments block closing.
     for (int i = 1; i <= 4; i++) {
@@ -218,18 +218,18 @@ bool Doxygen::documentEntity(const DoxygenSettingsStruct& DoxySettings, Core::IE
     editorWidget->gotoLineStart();
     editorWidget->gotoLineStartWithSelection();
     QString currentText = editorWidget->textCursor().selectedText();
-    QStringList textList = currentText.split(QRegExp("\\b"));
+    QStringList textList = currentText.split(QRegularExpression("\\b"));
     indent = textList.at(0);
 
     // quickfix when calling the method on "};" (end class) or "}" (end namespace)
-    if (indent.contains(QRegExp("^\\};?"))) {
+    if (indent.contains(QRegularExpression("^\\};?"))) {
         return false;
     }
 
     if (indent.endsWith('~'))
         indent.chop(1);
 
-    if (lastSymbol->isClass()) {
+    if (lastSymbol->asClass()) {
         docToWrite += indent + DoxySettings.DoxyComment.doxBegin;
         if (DoxySettings.printBrief) {
             docToWrite += indent + DoxySettings.DoxyComment.doxBrief;
@@ -237,7 +237,7 @@ bool Doxygen::documentEntity(const DoxygenSettingsStruct& DoxySettings, Core::IE
         }
         if (DoxySettings.verbosePrinting) {
             QString projectRoot = getProjectRoot();
-            QString fileNameStr = editor->document()->filePath().toString();
+            QString fileNameStr = editor->document()->filePath().path();
             QString fileName = fileNameStr.remove(0, fileNameStr.lastIndexOf("/") + 1);
             QString fileNameProj = fileNameStr.remove(projectRoot);
             docToWrite += indent + DoxySettings.DoxyComment.doxNewLine + "class " + overview.prettyName(name) + " " + fileName + " \"" + fileNameProj + "\"\n";
@@ -252,7 +252,7 @@ bool Doxygen::documentEntity(const DoxygenSettingsStruct& DoxySettings, Core::IE
         if (DoxySettings.verbosePrinting)
             docToWrite += indent + DoxySettings.DoxyComment.doxNewLine + "typedef " + overview.prettyName(name);
         docToWrite += indent + DoxySettings.DoxyComment.doxEnding;
-    } else if (lastSymbol->isEnum()) {
+    } else if (lastSymbol->asEnum()) {
         docToWrite += indent + DoxySettings.DoxyComment.doxBegin;
         if (DoxySettings.printBrief)
             docToWrite += indent + DoxySettings.DoxyComment.doxBrief;
@@ -262,7 +262,7 @@ bool Doxygen::documentEntity(const DoxygenSettingsStruct& DoxySettings, Core::IE
         docToWrite += indent + DoxySettings.DoxyComment.doxEnding;
     }
     // Here comes the bitch.
-    else if (lastSymbol->isDeclaration() || lastSymbol->isFunction()) {
+    else if (lastSymbol->asDeclaration() || lastSymbol->asFunction()) {
         overview.showArgumentNames = true;
         overview.showReturnTypes = false;
         overview.showDefaultArguments = false;
@@ -301,10 +301,10 @@ bool Doxygen::documentEntity(const DoxygenSettingsStruct& DoxySettings, Core::IE
             arglist.remove(0, arglist.indexOf("(") + 1);
             arglist.remove(arglist.lastIndexOf(")"), arglist.size() - arglist.lastIndexOf(")"));
 
-            QStringList args = arglist.trimmed().split(',', QString::SkipEmptyParts);
+            QStringList args = arglist.trimmed().split(',', Qt::SkipEmptyParts);
 
-            Q_FOREACH (QString singleArg, args) {
-                singleArg.remove(QRegExp("\\s*=.*")); // FIXME probably don't need the * after \\s but...
+            for (QString singleArg : args) {
+                singleArg.remove(QRegularExpression("\\s*=.*")); // FIXME probably don't need the * after \\s but...
                 singleArg.replace("*", "");
                 singleArg.replace("&", "");
                 docToWrite += indent + DoxySettings.DoxyComment.doxNewLine + "param " + singleArg.section(' ', -1) + "\n";
@@ -321,8 +321,8 @@ bool Doxygen::documentEntity(const DoxygenSettingsStruct& DoxySettings, Core::IE
 
             // FIXME this check is just insane...
             if (arglist.contains(' ')
-                && ((lastSymbol->isFunction() && !overview.prettyName(name).contains("::~"))
-                       || (lastSymbol->isDeclaration() && overview.prettyName(name).at(0) != '~'))) {
+                && ((lastSymbol->asFunction() && !overview.prettyName(name).contains("::~"))
+                       || (lastSymbol->asDeclaration() && overview.prettyName(name).at(0) != '~'))) {
                 QRegExp rx("void *");
                 rx.setPatternSyntax(QRegExp::Wildcard);
                 if (!rx.exactMatch(arglist)) {
@@ -383,16 +383,16 @@ bool Doxygen::addFileComment(const DoxygenSettingsStruct& DoxySettings, Core::IE
 
 void Doxygen::addSymbol(const CPlusPlus::Symbol* symbol, QList<const Symbol*>& symmap)
 {
-    if (!symbol || symbol->isBaseClass() || symbol->isGenerated())
+    if (!symbol || symbol->asBaseClass() || symbol->isGenerated())
         return;
 
-    if (symbol->isArgument()
-        || symbol->isFunction()
-        || symbol->isDeclaration()
-        || symbol->isEnum()) {
+    if (symbol->asArgument()
+        || symbol->asFunction()
+        || symbol->asDeclaration()
+        || symbol->asEnum()) {
         symmap.append(symbol);
         return;
-    } else if (symbol->isClass()) {
+    } else if (symbol->asClass()) {
         symmap.append(symbol);
     }
 
@@ -415,7 +415,7 @@ uint Doxygen::documentFile(const DoxygenSettingsStruct& DoxySettings, Core::IEdi
 
     m_cancel = false;
 
-    CppTools::CppModelManager* modelManager = CppTools::CppModelManager::instance();
+    CppEditor::CppModelManager* modelManager = CppEditor::CppModelManager::instance();
     //ExtensionSystem::PluginManager::instance()->getObject<CPlusPlus::CppModelManagerInterface>();
     if (!modelManager) {
         //qDebug() << "No modelManager";
@@ -457,7 +457,7 @@ uint Doxygen::documentFile(const DoxygenSettingsStruct& DoxySettings, Core::IEdi
 
     // sanity check, it's expensive and ugly but the result isn't pretty on some codes if not done.
     unsigned oldline = 0;
-    Q_FOREACH (const Symbol* sym, symmap) {
+    for (const Symbol* sym : symmap) {
         if (sym->line() == oldline)
             symmap.removeOne(sym);
         oldline = sym->line();
@@ -511,7 +511,7 @@ uint Doxygen::documentFile(const DoxygenSettingsStruct& DoxySettings, Core::IEdi
 // TODO: fix this! Unused at the moment.
 uint Doxygen::documentSpecificProject(const DoxygenSettingsStruct& DoxySettings)
 {
-    return documentProject(ProjectExplorer::SessionManager::startupProject(), DoxySettings);
+    return documentProject(ProjectExplorer::ProjectManager::startupProject(), DoxySettings);
 }
 
 uint Doxygen::documentCurrentProject(const DoxygenSettingsStruct& DoxySettings)
@@ -577,7 +577,7 @@ uint Doxygen::documentProject(ProjectExplorer::Project* p, const DoxygenSettings
                     && fileExtension == "qml"
                     )
                 ) {*/
-            Core::IEditor* editor = editorManager->openEditor(files[i], Utils::Id(),
+            Core::IEditor* editor = editorManager->openEditor(Utils::FilePath::fromString(files[i]), Utils::Id(),
                 Core::EditorManager::DoNotChangeCurrentEditor
                     | Core::EditorManager::IgnoreNavigationHistory
                     | Core::EditorManager::DoNotMakeVisible);
@@ -598,7 +598,7 @@ uint Doxygen::documentProject(ProjectExplorer::Project* p, const DoxygenSettings
             }
 
             if (commentFile) {
-                Core::IEditor* editor = editorManager->openEditor(files[i]);
+                Core::IEditor* editor = editorManager->openEditor(Utils::FilePath::fromString(files[i]));
                 if (editor)
                     count += addFileComment(DoxySettings, editor);
             }
@@ -607,7 +607,7 @@ uint Doxygen::documentProject(ProjectExplorer::Project* p, const DoxygenSettings
     m_projectProgress->setValue(files.size());
 
     QString msg;
-    msg.sprintf("Doxygen blocs generated: %u", count);
+    msg.asprintf("Doxygen blocs generated: %u", count);
     emit message(msg);
 
     return count;
@@ -618,7 +618,7 @@ QString Doxygen::getProjectRoot()
     QString projectRoot;
     Project* proj = ProjectTree::currentProject();
     if (proj) {
-        projectRoot = proj->projectDirectory().toString() + "/";
+        projectRoot = proj->projectDirectory().path() + "/";
     }
 
     return projectRoot;
