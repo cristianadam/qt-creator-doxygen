@@ -25,7 +25,6 @@
 #include <QIcon>
 #include <QtCore/QCoreApplication>
 #include <coreplugin/icore.h>
-#include <utils/icon.h>
 #include <utils/qtcassert.h>
 #include <utils/stylehelper.h>
 
@@ -39,10 +38,13 @@ namespace Internal {
             m_settings.fromSettings(settings);
         setId(Constants::DOXYGEN_SETTINGS_ID);
         setDisplayName(Tr::tr("Doxygen"));
-        setDisplayCategory(Tr::tr("Doxygen"));
         setCategory(Constants::DOXYGEN_SETTINGS_CATEGORY);
-        auto icon = Utils::FilePath::fromString(Utils::StyleHelper::dpiSpecificImageFile(":/doxygen.png"));
-        setCategoryIconPath(icon);
+
+        auto icon = Utils::FilePath::fromString(
+            Utils::StyleHelper::dpiSpecificImageFile(":/doxygen.png"));
+        IOptionsPage::registerCategory(Constants::DOXYGEN_SETTINGS_CATEGORY,
+                                       Tr::tr("Doxygen"),
+                                       icon);
     }
 
     QWidget* DoxygenSettings::widget()
