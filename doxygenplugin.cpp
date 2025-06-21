@@ -84,7 +84,7 @@ DoxygenPlugin::~DoxygenPlugin()
     delete m_settings;
 }
 
-bool DoxygenPlugin::initialize(const QStringList& arguments, QString* errorString)
+void DoxygenPlugin::initialize()
 {
     // Register objects in the plugin manager's object pool
     // Load settings
@@ -96,9 +96,6 @@ bool DoxygenPlugin::initialize(const QStringList& arguments, QString* errorStrin
     using namespace Constants;
     using namespace Core::Constants;
     using namespace ExtensionSystem;
-
-    Q_UNUSED(arguments);
-    Q_UNUSED(errorString);
 
     // settings dialog :)
     m_settings = new DoxygenSettings;
@@ -187,8 +184,6 @@ bool DoxygenPlugin::initialize(const QStringList& arguments, QString* errorStrin
         this, SLOT(processExited(int, QProcess::ExitStatus)));
     connect(m_process, SIGNAL(readyRead()),
         this, SLOT(readProcessOutput()));
-
-    return true;
 }
 
 void DoxygenPlugin::extensionsInitialized()

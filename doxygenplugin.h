@@ -52,7 +52,7 @@ public:
     DoxygenPlugin();
     ~DoxygenPlugin();
 
-    bool initialize(const QStringList &arguments, QString *errorString);
+    void initialize();
     void extensionsInitialized();
     ShutdownFlag aboutToShutdown();
 
