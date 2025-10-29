@@ -47,7 +47,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QString>
 #include <QStringList>
 
@@ -323,9 +323,8 @@ bool Doxygen::documentEntity(const DoxygenSettingsStruct& DoxySettings, Core::IE
             if (arglist.contains(' ')
                 && ((lastSymbol->asFunction() && !overview.prettyName(name).contains("::~"))
                        || (lastSymbol->asDeclaration() && overview.prettyName(name).at(0) != '~'))) {
-                QRegExp rx("void *");
-                rx.setPatternSyntax(QRegExp::Wildcard);
-                if (!rx.exactMatch(arglist)) {
+                QRegularExpression rx = QRegularExpression::fromWildcard(QStringLiteral("void *"));
+                if (!rx.match(arglist).hasMatch()) {
                     // dirty workarround
                     int last;
                     if (arglist.contains('>'))
