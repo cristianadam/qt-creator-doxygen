@@ -20,25 +20,82 @@
 **/
 
 #include "doxygensettingswidget.h"
+#include "doxygensettings.h"
 #include "ui_doxygensettingswidget.h"
 
-DoxygenSettingsWidget::DoxygenSettingsWidget(QWidget* parent)
-    : QWidget(parent)
+#include <utils/filepath.h>
+#include <utils/guiutils.h>
+
+namespace DoxyPlugin {
+namespace Internal {
+
+DoxygenSettingsWidget::DoxygenSettingsWidget(DoxygenSettings* settings)
+    : IOptionsPageWidget()
     , ui(new Ui::DoxygenSettingsWidget)
+    , m_settings(settings)
 {
     ui->setupUi(this);
-    ui->pathChooser_doxygen->setExpectedKind(Utils::PathChooser::Command);
+    ui->pathChooser_doxygen->setExpectedKind(Utils::PathChooserKind::Command);
     ui->pathChooser_doxygen->setPromptDialogTitle(tr("Doxygen Command"));
-    ui->pathChooser_wizard->setExpectedKind(Utils::PathChooser::Command);
+    ui->pathChooser_wizard->setExpectedKind(Utils::PathChooserKind::Command);
     ui->pathChooser_wizard->setPromptDialogTitle(tr("DoxyWizard Command"));
     // Why do I *have* to call processEvents() to get my QComboBox display the right value?!
     qApp->processEvents();
     connect(ui->styleChooser, SIGNAL(currentIndexChanged(int)), this, SLOT(updateCustomWidgetPart(int)));
+    connect(ui->styleChooser, &QComboBox::currentIndexChanged, this,
+            [this] { updateFileCommentPreview(); });
+    connect(ui->fileCommentText, &QPlainTextEdit::textChanged, this,
+            [this] { updateFileCommentPreview(); });
+
+    setSettings(m_settings->settings());
+    updateFileCommentPreview();
+
+    // Activate the Options dialog's Apply/Discard buttons as soon as a setting changes.
+    // The recursive helper covers the line edits, combos and check boxes; the plain text
+    // edit for the file comment and the path choosers (whose browse button changes the path
+    // programmatically) are connected explicitly, as they are not handled above.
+    Utils::installMarkSettingsDirtyTriggerRecursively(this);
+    connect(ui->fileCommentText, &QPlainTextEdit::textChanged, this,
+            [] { Utils::markSettingsDirty(); });
+    connect(ui->pathChooser_doxygen, &Utils::PathChooser::textChanged, this,
+            [] { Utils::markSettingsDirty(); });
+    connect(ui->pathChooser_wizard, &Utils::PathChooser::textChanged, this,
+            [] { Utils::markSettingsDirty(); });
 }
 
 DoxygenSettingsWidget::~DoxygenSettingsWidget()
 {
     delete ui;
+}
+
+void DoxygenSettingsWidget::apply()
+{
+    m_settings->setSettings(settings());
+}
+
+void DoxygenSettingsWidget::cancel()
+{
+    setSettings(m_settings->settings());
+}
+
+bool DoxygenSettingsWidget::isDirty() const
+{
+    return settings() != m_settings->settings();
+}
+
+void DoxygenSettingsWidget::updateFileCommentPreview()
+{
+    // Mirror the comment that Doxygen::addFileComment() inserts, so the user
+    // can see how the configured file comment will look.
+    DoxygenSettingsStruct s = settings();
+    s.setDoxygenCommentStyle(s.style);
+    const QString preview
+        = s.DoxyComment.doxBegin + s.DoxyComment.doxNewLine
+          + "file " + QStringLiteral("somefile.cpp") + QLatin1Char('\n')
+          + s.DoxyComment.doxEmptyLine
+          + s.fileComment
+          + s.DoxyComment.doxEnding + QLatin1Char('\n');
+    ui->fileCommentPreview->setPlainText(preview);
 }
 
 void DoxygenSettingsWidget::changeEvent(QEvent* e)
@@ -140,3 +197,6 @@ void DoxygenSettingsWidget::on_fcommentChooser_currentIndexChanged(int index)
     Q_UNUSED(index)
     on_fileComments_clicked(ui->fileComments->isChecked());
 }
+
+} // namespace Internal
+} // namespace DoxyPlugin

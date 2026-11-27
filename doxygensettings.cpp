@@ -21,6 +21,7 @@
 
 #include "doxygensettings.h"
 #include "doxygenconstants.h"
+#include "doxygensettingswidget.h"
 #include "doxygentr.h"
 #include <QIcon>
 #include <QtCore/QCoreApplication>
@@ -32,39 +33,19 @@ namespace DoxyPlugin {
 namespace Internal {
 
     DoxygenSettings::DoxygenSettings()
-        : m_widget()
     {
         if (auto settings = Core::ICore::instance()->settings())
             m_settings.fromSettings(settings);
         setId(Constants::DOXYGEN_SETTINGS_ID);
         setDisplayName(Tr::tr("Doxygen"));
         setCategory(Constants::DOXYGEN_SETTINGS_CATEGORY);
+        setWidgetCreator([this] { return new DoxygenSettingsWidget(this); });
 
         auto icon = Utils::FilePath::fromString(
             Utils::StyleHelper::dpiSpecificImageFile(":/doxygen.png"));
         IOptionsPage::registerCategory(Constants::DOXYGEN_SETTINGS_CATEGORY,
                                        Tr::tr("Doxygen"),
                                        icon);
-    }
-
-    QWidget* DoxygenSettings::widget()
-    {
-        if (!m_widget) {
-            m_widget = new DoxygenSettingsWidget;
-            m_widget->setSettings(settings());
-        }
-        return m_widget;
-    }
-
-    void DoxygenSettings::apply()
-    {
-        if (!m_widget)
-            return;
-        setSettings(m_widget->settings());
-    }
-
-    void DoxygenSettings::finish()
-    {
     }
 
     DoxygenSettingsStruct DoxygenSettings::settings() const

@@ -24,8 +24,6 @@
 
 #include <coreplugin/dialogs/ioptionspage.h>
 #include "doxygensettingsstruct.h"
-#include "doxygensettingswidget.h"
-#include <QPointer>
 
 namespace DoxyPlugin {
 namespace Internal {
@@ -35,15 +33,11 @@ class DoxygenSettings : public Core::IOptionsPage
 public:
     DoxygenSettings();
 
-    QWidget *widget();
-    void apply();
-    void finish();
     DoxygenSettingsStruct settings() const;
     void setSettings(const DoxygenSettingsStruct &s);
 
 private:
     DoxygenSettingsStruct m_settings;
-    QPointer<DoxygenSettingsWidget> m_widget;
 };
 
 } // namespace Internal

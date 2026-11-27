@@ -73,6 +73,11 @@ static QString defaultDoxyFile()
     return QLatin1String("Doxyfile");
 }
 
+static QString defaultFileComment()
+{
+    return QStringLiteral("@brief <brief description of the file>\n");
+}
+
 DoxygenSettingsStruct::DoxygenSettingsStruct()
     : doxyfileFileName(defaultDoxyFile())
     , doxygenCommand(defaultCommand())
@@ -83,6 +88,7 @@ DoxygenSettingsStruct::DoxygenSettingsStruct()
     , shortVarDoc(true)
     , verbosePrinting(false)
     , automaticReturnType(true)
+    , fileComment(defaultFileComment())
 {
     qRegisterMetaType<DoxygenSettingsStruct>("DoxygenSettingsStruct");
 }
@@ -109,7 +115,7 @@ void DoxygenSettingsStruct::fromSettings(Utils::QtcSettings* settings)
     fileCommentsEnabled = settings->value(Utils::keyFromString(QLatin1String(fileCommentEnabledKeyC)), false).toBool();
     fileCommentHeaders = settings->value(Utils::keyFromString(QLatin1String(fileCommentHeadersKeyC)), false).toBool();
     fileCommentImpl = settings->value(Utils::keyFromString(QLatin1String(fileCommentImplKeyC)), false).toBool();
-    fileComment = settings->value(Utils::keyFromString(QLatin1String(fileCommentKeyC)), "").toString();
+    fileComment = settings->value(Utils::keyFromString(QLatin1String(fileCommentKeyC)), defaultFileComment()).toString();
 
     settings->endGroup();
 

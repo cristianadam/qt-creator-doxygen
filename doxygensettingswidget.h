@@ -22,36 +22,49 @@
 #ifndef DOXYGENSETTINGSWIDGET_H
 #define DOXYGENSETTINGSWIDGET_H
 
-#include <QWidget>
+#include <coreplugin/dialogs/ioptionspage.h>
 #include <utils/pathchooser.h>
 #include "doxygensettingsstruct.h"
-
-using namespace DoxyPlugin;
-using namespace DoxyPlugin::Internal;
 
 namespace Ui {
     class DoxygenSettingsWidget;
 }
 
-class DoxygenSettingsWidget : public QWidget
+namespace DoxyPlugin {
+namespace Internal {
+
+class DoxygenSettings;
+
+class DoxygenSettingsWidget : public Core::IOptionsPageWidget
 {
     Q_OBJECT
 public:
-    DoxygenSettingsWidget(QWidget *parent = 0);
-    ~DoxygenSettingsWidget();
+    explicit DoxygenSettingsWidget(DoxygenSettings *settings);
+    ~DoxygenSettingsWidget() override;
+
+    void apply() override;
+    void cancel() override;
+    bool isDirty() const override;
+
     DoxygenSettingsStruct settings() const;
     void setSettings(const DoxygenSettingsStruct &);
 
 protected:
-    void changeEvent(QEvent *e);
+    void changeEvent(QEvent *e) override;
 
 private:
     Ui::DoxygenSettingsWidget *ui;
+    DoxygenSettings *m_settings;
+
+    void updateFileCommentPreview();
 
 private slots:
     void updateCustomWidgetPart(int index);
     void on_fileComments_clicked(bool checked);
     void on_fcommentChooser_currentIndexChanged(int index);
 };
+
+} // namespace Internal
+} // namespace DoxyPlugin
 
 #endif // DOXYGENSETTINGSWIDGET_H
